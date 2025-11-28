@@ -5,6 +5,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"html/template"
+	"log"
+	"order-service/internal/model"
+	"order-service/internal/repository"
+	"strconv"
+	"time"
+
 	"github.com/google/uuid"
 	cart "github.com/nexus-commerce/nexus-contracts-go/cart/v1"
 	user "github.com/nexus-commerce/nexus-contracts-go/user/v1"
@@ -12,12 +19,6 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
-	"html/template"
-	"log"
-	"order-service/internal/model"
-	"order-service/internal/repository"
-	"strconv"
-	"time"
 )
 
 var (
@@ -28,6 +29,11 @@ var (
 	ErrSendingEvent    = errors.New("error sending event")
 	ErrUserNotFound    = errors.New("user not found")
 	ErrMissingToken    = errors.New("missing auth token")
+)
+
+const (
+	PaymentMethodCard       = "PAYMENT_METHOD_CARD"
+	PaymentMethodOnDelivery = "PAYMENT_METHOD_ON_DELIVERY"
 )
 
 type OrderCreatedEvent struct {
@@ -213,7 +219,7 @@ func (s *Service) GetUserOrders(ctx context.Context, userID int64) ([]*model.Ord
 
 func (s *Service) ConfirmOrder(ctx context.Context, eventData OrderData) error {
 	var st = model.Paid
-	if eventData.PaymentMethod == "PAYMENT_METHOD_ON_DELIVERY" {
+	if eventData.PaymentMethod == PaymentMethodOnDelivery {
 		st = model.Confirmed
 	}
 
