@@ -13,6 +13,13 @@ const (
 	Cancelled Status = "STATUS_CANCELLED"
 )
 
+type PaymentMethod string
+
+const (
+	Card       PaymentMethod = "PAYMENT_METHOD_CARD"
+	OnDelivery PaymentMethod = "PAYMENT_METHOD_ON_DELIVERY"
+)
+
 type Order struct {
 	ID              int64        `json:"id"`
 	UserID          int64        `json:"user_id"`

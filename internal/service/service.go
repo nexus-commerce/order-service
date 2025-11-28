@@ -31,11 +31,6 @@ var (
 	ErrMissingToken    = errors.New("missing auth token")
 )
 
-const (
-	PaymentMethodCard       = "PAYMENT_METHOD_CARD"
-	PaymentMethodOnDelivery = "PAYMENT_METHOD_ON_DELIVERY"
-)
-
 type OrderCreatedEvent struct {
 	EventID   string    `json:"event_id"`
 	EventType string    `json:"event_type"`
@@ -219,7 +214,7 @@ func (s *Service) GetUserOrders(ctx context.Context, userID int64) ([]*model.Ord
 
 func (s *Service) ConfirmOrder(ctx context.Context, eventData OrderData) error {
 	var st = model.Paid
-	if eventData.PaymentMethod == PaymentMethodOnDelivery {
+	if eventData.PaymentMethod == string(model.OnDelivery) {
 		st = model.Confirmed
 	}
 
