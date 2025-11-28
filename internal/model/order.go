@@ -7,10 +7,10 @@ import (
 type Status string
 
 const (
-	Pending   Status = "PENDING"
-	Paid      Status = "PAID"
-	Confirmed Status = "CONFIRMED"
-	Cancelled Status = "CANCELLED"
+	Pending   Status = "STATUS_PENDING"
+	Paid      Status = "STATUS_PAID"
+	Confirmed Status = "STATUS_CONFIRMED"
+	Cancelled Status = "STATUS_CANCELLED"
 )
 
 type Order struct {

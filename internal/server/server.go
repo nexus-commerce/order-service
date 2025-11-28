@@ -123,6 +123,7 @@ func (s *Server) ListUserOrders(ctx context.Context, _ *pb.ListUserOrdersRequest
 		items := make([]*pb.OrderItem, len(order.Items))
 		for i, item := range order.Items {
 			items[i] = &pb.OrderItem{
+				Sku:      item.Sku,
 				Quantity: item.Quantity,
 				Price:    item.Price,
 			}

@@ -183,6 +183,7 @@ func (s *Service) CreateOrderSaga(ctx context.Context, userID int64, shippingAdd
 	}
 
 	if err := s.sendOrderCreatedEvent(ctx, orderData); err != nil {
+		log.Println(err)
 		return 0, "", ErrSendingEvent
 	}
 
@@ -212,7 +213,7 @@ func (s *Service) GetUserOrders(ctx context.Context, userID int64) ([]*model.Ord
 
 func (s *Service) ConfirmOrder(ctx context.Context, eventData OrderData) error {
 	var st = model.Paid
-	if eventData.PaymentMethod == "ON_DELIVERY" {
+	if eventData.PaymentMethod == "PAYMENT_METHOD_ON_DELIVERY" {
 		st = model.Confirmed
 	}
 
