@@ -35,7 +35,8 @@ import (
 )
 
 const (
-	secret = "my-secret-key"
+	secret        = "my-secret-key"
+	migrationPath = "./migrations"
 )
 
 func main() {
@@ -56,7 +57,7 @@ func run() error {
 		cfg.DB.User, cfg.DB.Password, cfg.DB.Host,
 		cfg.DB.Port, cfg.DB.Name,
 	)
-	conn, err := setupDatabase(addr, cfg.DB.MigrationsPath)
+	conn, err := setupDatabase(addr, migrationPath)
 	if err != nil {
 		return err
 	}

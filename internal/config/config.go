@@ -6,12 +6,11 @@ import (
 
 type Config struct {
 	DB struct {
-		Host           string `env:"DB_HOST" envDefault:"postgres-order"`
-		Port           string `env:"DB_PORT" envDefault:"5434"`
-		User           string `env:"DB_USER" envDefault:"postgres"`
-		Password       string `env:"DB_PASSWORD" envDefault:"password"`
-		Name           string `env:"DB_NAME" envDefault:"orderdb"`
-		MigrationsPath string `env:"DB_MIGRATIONS_PATH" envDefault:"./migrations"`
+		Host     string `env:"DB_HOST" envDefault:"postgres-order"`
+		Port     string `env:"DB_PORT" envDefault:"5434"`
+		User     string `env:"DB_USER" envDefault:"postgres"`
+		Password string `env:"DB_PASSWORD" envDefault:"password"`
+		Name     string `env:"DB_NAME" envDefault:"orderdb"`
 	}
 	Server struct {
 		Port string `env:"SERVER_PORT" envDefault:":8080"`
