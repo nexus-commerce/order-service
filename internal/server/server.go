@@ -25,7 +25,7 @@ func NewOrderServer(s *service.Service) *Server {
 func (s *Server) CreateOrder(ctx context.Context, r *pb.CreateOrderRequest) (*pb.CreateOrderResponse, error) {
 	userID, ok := ctx.Value("user-id").(int)
 	if !ok {
-		return nil, status.Error(codes.FailedPrecondition, "user id missing") // return FAILED_PRECONDITION status here as the system should never get into this state
+		return nil, status.Error(codes.Internal, "user id missing") // return FAILED_PRECONDITION status here as the system should never get into this state
 	}
 
 	userIDInt := int64(userID)
@@ -90,7 +90,7 @@ func (s *Server) CreateOrder(ctx context.Context, r *pb.CreateOrderRequest) (*pb
 func (s *Server) GetOrder(ctx context.Context, r *pb.GetOrderRequest) (*pb.GetOrderResponse, error) {
 	userID, ok := ctx.Value("user-id").(int)
 	if !ok {
-		return nil, status.Error(codes.FailedPrecondition, "user id missing") // return FAILED_PRECONDITION status here as the system should never get into this state
+		return nil, status.Error(codes.Internal, "user id missing") // return FAILED_PRECONDITION status here as the system should never get into this state
 	}
 
 	userIDInt := int64(userID)
@@ -125,14 +125,13 @@ func (s *Server) GetOrder(ctx context.Context, r *pb.GetOrderRequest) (*pb.GetOr
 func (s *Server) ListUserOrders(ctx context.Context, _ *pb.ListUserOrdersRequest) (*pb.ListUserOrdersResponse, error) {
 	userID, ok := ctx.Value("user-id").(int)
 	if !ok {
-		return nil, status.Error(codes.FailedPrecondition, "user id missing") // return FAILED_PRECONDITION status here as the system should never get into this state
+		return nil, status.Error(codes.Internal, "user id missing") // return FAILED_PRECONDITION status here as the system should never get into this state
 	}
 
 	userIDInt := int64(userID)
 
 	orders, err := s.Service.GetUserOrders(ctx, userIDInt)
 	if err != nil {
-		log.Println(err)
 		return nil, status.Error(codes.Internal, fmt.Sprintf("failed to get user orders: %v", err))
 	}
 
