@@ -52,7 +52,7 @@ func (s *Server) CreateOrder(ctx context.Context, r *pb.CreateOrderRequest) (*pb
 		return nil, status.Error(codes.InvalidArgument, "invalid payment method")
 	}
 
-	orderID, orderStatus, err := s.Service.CreateOrderSaga(ctx, userIDInt, r.GetShippingAddress(), r.GetPaymentMethod().String(), paymentIntentID)
+	order, err := s.Service.CreateOrderSaga(ctx, userIDInt, r.GetShippingAddress(), r.GetPaymentMethod().String(), paymentIntentID)
 	if err != nil {
 		log.Println(err)
 		switch {
@@ -67,8 +67,13 @@ func (s *Server) CreateOrder(ctx context.Context, r *pb.CreateOrderRequest) (*pb
 	}
 
 	return &pb.CreateOrderResponse{
-		Id:     orderID,
-		Status: orderStatus,
+		Order: &pb.Order{
+			Id:              order.ID,
+			UserId:          order.UserID,
+			Status:          pb.Status(pb.Status_value[string(order.Status)]),
+			TotalPrice:      order.TotalPrice,
+			ShippingAddress: order.ShippingAddress,
+		},
 	}, nil
 }
 
@@ -95,12 +100,14 @@ func (s *Server) GetOrder(ctx context.Context, r *pb.GetOrderRequest) (*pb.GetOr
 	}
 
 	return &pb.GetOrderResponse{
-		Id:              order.ID,
-		UserId:          order.UserID,
-		Status:          pb.Status(pb.Status_value[string(order.Status)]),
-		Items:           items,
-		TotalPrice:      order.TotalPrice,
-		ShippingAddress: order.ShippingAddress,
+		Order: &pb.Order{
+			Id:              order.ID,
+			UserId:          order.UserID,
+			Status:          pb.Status(pb.Status_value[string(order.Status)]),
+			Items:           items,
+			TotalPrice:      order.TotalPrice,
+			ShippingAddress: order.ShippingAddress,
+		},
 	}, nil
 }
 
@@ -118,7 +125,7 @@ func (s *Server) ListUserOrders(ctx context.Context, _ *pb.ListUserOrdersRequest
 		return nil, status.Error(codes.Internal, fmt.Sprintf("failed to get user orders: %v", err))
 	}
 
-	var ordersResponse []*pb.GetOrderResponse
+	var ordersResponse []*pb.Order
 	for _, order := range orders {
 		items := make([]*pb.OrderItem, len(order.Items))
 		for i, item := range order.Items {
@@ -128,7 +135,7 @@ func (s *Server) ListUserOrders(ctx context.Context, _ *pb.ListUserOrdersRequest
 				Price:    item.Price,
 			}
 		}
-		ordersResponse = append(ordersResponse, &pb.GetOrderResponse{
+		ordersResponse = append(ordersResponse, &pb.Order{
 			Id:              order.ID,
 			UserId:          order.UserID,
 			Status:          pb.Status(pb.Status_value[string(order.Status)]),

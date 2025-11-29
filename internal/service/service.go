@@ -81,15 +81,15 @@ func New(repo *repository.Repository, cartClient cart.ShoppingCartServiceClient,
 	}
 }
 
-func (s *Service) CreateOrderSaga(ctx context.Context, userID int64, shippingAddress, paymentMethod string, paymentIntentID *string) (int64, string, error) {
+func (s *Service) CreateOrderSaga(ctx context.Context, userID int64, shippingAddress, paymentMethod string, paymentIntentID *string) (*model.Order, error) {
 	mt, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
-		return 0, "", ErrMissingMetadata
+		return nil, ErrMissingMetadata
 	}
 
 	authTokens := mt.Get("Authorization")
 	if len(authTokens) == 0 {
-		return 0, "", ErrMissingToken
+		return nil, ErrMissingToken
 	}
 	token := authTokens[0]
 	md := metadata.Pairs("Authorization", token)
@@ -98,15 +98,15 @@ func (s *Service) CreateOrderSaga(ctx context.Context, userID int64, shippingAdd
 	getCartResp, err := s.cartClient.GetCart(outgoingCtx, &cart.GetCartRequest{})
 	if err != nil {
 		if status.Code(err) == codes.FailedPrecondition {
-			return 0, "", ErrMissingUserID
+			return nil, ErrMissingUserID
 		}
-		return 0, "", ErrGetCart
+		return nil, ErrGetCart
 	}
 
 	itemsLen := len(getCartResp.GetItems())
 
 	if itemsLen == 0 {
-		return 0, "", ErrEmptyCart
+		return nil, ErrEmptyCart
 	}
 
 	items := make([]*model.OrderItem, itemsLen)
@@ -133,16 +133,16 @@ func (s *Service) CreateOrderSaga(ctx context.Context, userID int64, shippingAdd
 
 	orderID, err := s.repo.CreateOrder(ctx, order)
 	if err != nil {
-		return 0, "", err
+		return nil, err
 	}
 	order.ID = orderID
 
 	_, err = s.cartClient.ClearCart(outgoingCtx, &cart.ClearCartRequest{})
 	if err != nil {
 		if status.Code(err) == codes.FailedPrecondition {
-			return 0, "", ErrMissingUserID
+			return nil, ErrMissingUserID
 		}
-		return 0, "", err
+		return nil, err
 	}
 
 	var dataItems []*OrderItemData
@@ -161,17 +161,17 @@ func (s *Service) CreateOrderSaga(ctx context.Context, userID int64, shippingAdd
 	if err != nil {
 		switch {
 		case status.Code(err) == codes.FailedPrecondition:
-			return 0, "", ErrMissingUserID
+			return nil, ErrMissingUserID
 		case status.Code(err) == codes.NotFound:
-			return 0, "", ErrUserNotFound
+			return nil, ErrUserNotFound
 		}
-		return 0, "", err
+		return nil, err
 	}
 
 	orderData := OrderData{
-		CustomerFirstName: userResp.GetFirstName(),
-		CustomerLastName:  userResp.GetLastName(),
-		CustomerEmail:     userResp.GetEmail(),
+		CustomerFirstName: userResp.GetUser().GetFirstName(),
+		CustomerLastName:  userResp.GetUser().GetLastName(),
+		CustomerEmail:     userResp.GetUser().GetEmail(),
 		OrderID:           order.ID,
 		OrderDate:         order.CreatedAt,
 		PaymentMethod:     paymentMethod,
@@ -185,10 +185,10 @@ func (s *Service) CreateOrderSaga(ctx context.Context, userID int64, shippingAdd
 
 	if err := s.sendOrderCreatedEvent(ctx, orderData); err != nil {
 		log.Println(err)
-		return 0, "", ErrSendingEvent
+		return nil, ErrSendingEvent
 	}
 
-	return order.ID, string(order.Status), nil
+	return order, nil
 }
 
 func (s *Service) GetOrder(ctx context.Context, userID int64, orderID int64) (*model.Order, error) {
