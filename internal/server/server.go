@@ -66,9 +66,19 @@ func (s *Server) CreateOrder(ctx context.Context, r *pb.CreateOrderRequest) (*pb
 		return nil, status.Error(codes.Internal, fmt.Sprintf("failed to create order: %v", err))
 	}
 
+	var items []*pb.OrderItem
+	for _, item := range order.Items {
+		items = append(items, &pb.OrderItem{
+			Quantity: item.Quantity,
+			Sku:      item.Sku,
+			Price:    item.Price,
+		})
+	}
+
 	return &pb.CreateOrderResponse{
 		Order: &pb.Order{
 			Id:              order.ID,
+			Items:           items,
 			UserId:          order.UserID,
 			Status:          pb.Status(pb.Status_value[string(order.Status)]),
 			TotalPrice:      order.TotalPrice,
@@ -95,6 +105,7 @@ func (s *Server) GetOrder(ctx context.Context, r *pb.GetOrderRequest) (*pb.GetOr
 	for i, item := range order.Items {
 		items[i] = &pb.OrderItem{
 			Quantity: item.Quantity,
+			Sku:      item.Sku,
 			Price:    item.Price,
 		}
 	}
