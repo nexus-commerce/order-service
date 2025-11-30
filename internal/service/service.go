@@ -29,6 +29,7 @@ var (
 	ErrSendingEvent    = errors.New("error sending event")
 	ErrUserNotFound    = errors.New("user not found")
 	ErrMissingToken    = errors.New("missing auth token")
+	ErrInvalidShipping = errors.New("invalid shipping address")
 )
 
 type OrderCreatedEvent struct {
@@ -82,6 +83,10 @@ func New(repo *repository.Repository, cartClient cart.ShoppingCartServiceClient,
 }
 
 func (s *Service) CreateOrderSaga(ctx context.Context, userID int64, shippingAddress, paymentMethod string, paymentIntentID *string) (*model.Order, error) {
+	if shippingAddress == "" {
+		return nil, ErrInvalidShipping
+	}
+
 	mt, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
 		return nil, ErrMissingMetadata

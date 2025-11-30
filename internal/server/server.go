@@ -54,8 +54,9 @@ func (s *Server) CreateOrder(ctx context.Context, r *pb.CreateOrderRequest) (*pb
 
 	order, err := s.Service.CreateOrderSaga(ctx, userIDInt, r.GetShippingAddress(), r.GetPaymentMethod().String(), paymentIntentID)
 	if err != nil {
-		log.Println(err)
 		switch {
+		case errors.Is(err, service.ErrInvalidShipping):
+			return nil, status.Error(codes.InvalidArgument, "invalid shipping address")
 		case errors.Is(err, service.ErrEmptyCart):
 			return nil, status.Error(codes.FailedPrecondition, "cart is empty")
 		case errors.Is(err, service.ErrGetCart):
