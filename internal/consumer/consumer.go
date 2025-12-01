@@ -104,7 +104,7 @@ func (c *Consumer) handlePaymentFailed(ctx context.Context, m *kafka.Message) er
 		return err
 	}
 
-	err = c.service.ConfirmOrder(ctx, event.Data)
+	err = c.service.CancelOrder(ctx, event.Data)
 
 	return err
 }
